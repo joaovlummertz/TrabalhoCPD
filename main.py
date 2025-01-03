@@ -1,6 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from PyQt5.QtGui import QIcon
+import main_window
+from main_window import Ui_MainWindow
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -10,7 +12,9 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(window)
     window.show()
     sys.exit(app.exec_())
 
