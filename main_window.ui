@@ -48,11 +48,11 @@
      <attribute name="title">
       <string>Tabela</string>
      </attribute>
-     <widget class="QTableView" name="tableView">
+     <widget class="QTableWidget" name="tableWidget">
       <property name="geometry">
        <rect>
         <x>5</x>
-        <y>21</y>
+        <y>11</y>
         <width>881</width>
         <height>631</height>
        </rect>
