@@ -2,6 +2,7 @@ import sys
 import pickle
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from main_window import Ui_MainWindow
+import btree
 
 class Song:
     def __init__(self, title, artist, year, total_streams, peak_daily, genre):
@@ -36,6 +37,68 @@ def read_from_bin():
         return pickle.load(bin_file)
 
 def main():
+    #aqui começa a fazer uma lista com três músicas, duas delas do mesmo artista
+    list = []
+    Kpop = Genre("Kpop", 0, None, None)
+    NewJeans = Artist("New Jeans", "Korea", "Fem", 0, None, [])
+    temp = Song("Right Now", NewJeans, 2024, 100, 10, Kpop)
+    list.append(temp)
+    temp = Song("Supernatural", NewJeans, 2024, 200, 15, Kpop)
+    list.append(temp)
+    TaylorSwift = Artist("Taylor Swift", "USA","Fem",  0, None, [])
+    Pop = Genre("Pop", 0, None, None)
+    temp = Song("Blank Space", TaylorSwift, 2014, 1500, 150, Pop)
+    list.append(temp)
+
+    #aqui começa a atualizar os espaços de música mais ouvida de cada artista e genero
+    for song in list:
+        if song.genre.most_streamed_song == None or song.genre.most_streamed_song.total_streams < song.total_streams:
+            song.genre.most_streamed_song = song
+            song.genre.most_streamed_artist = song.artist
+        song.artist.songs.append(song)
+        if song.artist.most_streamed_song ==  None or song.artist.most_streamed_song.total_streams < song.total_streams:
+            song.artist.most_streamed_song = song
+        song.artist.total_streams += song.total_streams
+
+    for song in list:
+        if song.genre.most_streamed_artist == None or song.genre.most_streamed_artist.total_streams < song.artist.total_streams:
+            song.genre.most_streamed_artist = song.artist
+
+    #incluindo novo item na lista
+    Enhypen = Artist("Enhypen", "Korea", "Masc", 0, None, [])
+    temp = Song("Daydream", Enhypen, 2024, 1000, 100, Kpop)
+    list.append(temp)
+    temp = Song("No doubt", Enhypen, 2024, 1050, 100, Kpop)
+    list.append(temp)
+
+    #tem que fazer todo o processo de novo
+    for song in list:
+        if song.genre.most_streamed_song == None or song.genre.most_streamed_song.total_streams < song.total_streams:
+            song.genre.most_streamed_song = song
+            song.genre.most_streamed_artist = song.artist
+        song.artist.songs.append(song)
+        if song.artist.most_streamed_song ==  None or song.artist.most_streamed_song.total_streams < song.total_streams:
+            song.artist.most_streamed_song = song
+        song.artist.total_streams += song.total_streams
+
+    for song in list:
+        if song.genre.most_streamed_artist == None or song.genre.most_streamed_artist.total_streams < song.artist.total_streams:
+            song.genre.most_streamed_artist = song.artist
+
+    #processo de ordenamento por streams usando b-tree
+    Stream = btree.BTree(2)
+    for indice in range(0, len(list)):
+        Stream.insert(list[indice].total_streams, indice)
+
+    list_t = []
+    Stream.display(list_t)
+    for indice in list_t:
+        print(list[indice].title, list[indice].total_streams)
+
+
+
+
+
     #import csv_to_bin
     #csv_to_bin.convert()
     songs_read = read_from_bin()
