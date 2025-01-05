@@ -4,6 +4,13 @@ class TrieNode:
     def __init__(self):
         self.children = collections.defaultdict(TrieNode)
         self.is_end = False
+        self.indice = None
+
+    def allthatstartsrecursive(self, listt):
+        if self.is_end:
+            listt.append(self.indice)
+        for value in self.children.values():
+            value.allthatstartsrecursive(listt)
 
 
 class Trie:
@@ -13,7 +20,7 @@ class Trie:
         """
         self.root = TrieNode()
 
-    def insert(self, word: str) -> None:
+    def insert(self, word: str, indice) -> None:
         """
         Inserts a word into the trie.
         """
@@ -21,19 +28,20 @@ class Trie:
         for letter in word:
             current = current.children[letter]
         current.is_end = True
+        current.indice = indice
 
-    def search(self, word: str) -> bool:
+    def search(self, word: str) -> int or list or None:
         """
-        Returns if the word is in the trie.
+        Returns indice if word is in the trie, returns none otherwise.
         """
         current = self.root
         for letter in word:
             current = current.children.get(letter)
             if current is None:
-                return False
-        return current.is_end
+                return None
+        return current.indice
 
-    def startsWith(self, prefix: str) -> bool:
+    def startswith(self, prefix: str) -> bool:
         """
         Returns if there is any word in the trie that starts with the given prefix.
         """
@@ -46,4 +54,19 @@ class Trie:
 
         return True
 
-    def allthatstartswith(self, prefix: str, list_):
+    def allthatstartswith(self, prefix: str, listt):
+        """
+        Returns list of elements that have the given prefix.
+        """
+        current = self.root
+
+        for letter in prefix:
+            current = current.children.get(letter)
+            if not current:
+                break
+        if current:
+            if current.is_end:
+                listt.append(current.indice)
+
+            for value in current.children.values():
+                value.allthatstartsrecursive(listt)
