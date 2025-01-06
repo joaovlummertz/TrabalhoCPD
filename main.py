@@ -3,7 +3,6 @@ import pickle
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
 
-from btree import BTree
 from main_window import Ui_MainWindow
 from table import CustomTableWidget
 from btree import BTree
@@ -41,104 +40,40 @@ def read_from_bin():
     with open("data.pkl", "rb") as bin_file:
         return pickle.load(bin_file)
 
-def main():
-    #aqui começa a fazer uma lista com três músicas, duas delas do mesmo artista
-    # list = []
-    # Kpop = Genre("Kpop", 0, None, None)
-    # NewJeans = Artist("New Jeans", "Korea", "Fem", 0, None, [])
-    # temp = Song("Right Now", NewJeans, 2024, 100, 10, Kpop)
-    # list.append(temp)
-    # temp = Song("Supernatural", NewJeans, 2024, 200, 15, Kpop)
-    # list.append(temp)
-    # TaylorSwift = Artist("Taylor Swift", "USA","Fem",  0, None, [])
-    # Pop = Genre("Pop", 0, None, None)
-    # temp = Song("Blank Space", TaylorSwift, 2014, 1500, 150, Pop)
-    # list.append(temp)
-    #
-    # #aqui começa a atualizar os espaços de música mais ouvida de cada artista e genero
-    # for song in list:
-    #     if song.genre.most_streamed_song == None or song.genre.most_streamed_song.total_streams < song.total_streams:
-    #         song.genre.most_streamed_song = song
-    #         song.genre.most_streamed_artist = song.artist
-    #     song.artist.songs.append(song)
-    #     if song.artist.most_streamed_song ==  None or song.artist.most_streamed_song.total_streams < song.total_streams:
-    #         song.artist.most_streamed_song = song
-    #     song.artist.total_streams += song.total_streams
-    #
-    # for song in list:
-    #     if song.genre.most_streamed_artist == None or song.genre.most_streamed_artist.total_streams < song.artist.total_streams:
-    #         song.genre.most_streamed_artist = song.artist
-    #
-    # #incluindo novo item na lista
-    # Enhypen = Artist("Enhypen", "Korea", "Masc", 0, None, [])
-    # temp = Song("Daydream", Enhypen, 2024, 1000, 100, Kpop)
-    # list.append(temp)
-    # temp = Song("No doubt", Enhypen, 2024, 1050, 100, Kpop)
-    # list.append(temp)
-    #
-    # #tem que fazer todo o processo de novo
-    # for song in list:
-    #     if song.genre.most_streamed_song == None or song.genre.most_streamed_song.total_streams < song.total_streams:
-    #         song.genre.most_streamed_song = song
-    #         song.genre.most_streamed_artist = song.artist
-    #     song.artist.songs.append(song)
-    #     if song.artist.most_streamed_song ==  None or song.artist.most_streamed_song.total_streams < song.total_streams:
-    #         song.artist.most_streamed_song = song
-    #     song.artist.total_streams += song.total_streams
-    #
-    # for song in list:
-    #     if song.genre.most_streamed_artist == None or song.genre.most_streamed_artist.total_streams < song.artist.total_streams:
-    #         song.genre.most_streamed_artist = song.artist
-    #
-    # #processo de ordenamento por streams usando b-tree
-    # Stream = btree.BTree(2)
-    # for indice in range(0, len(list)):
-    #     Stream.insert(list[indice].total_streams, indice)
-    #
-    # list_t = []
-    # Stream.display(list_t)
-    # for indice in list_t:
-    #     print(list[indice].title, list[indice].total_streams)
-
-
-    #import csv_to_bin
-    #csv_to_bin.convert()
-    songs_read = read_from_bin()
-    b_tree = BTree(2)
-    for i in range(len(songs_read)):
-        b_tree.insert(songs_read[i].total_streams, i)
-
-    display = []
-    b_tree.display(display)
-
-    #coisas do arquivo invertido
-    arquivo = []
+def create_postings_file(songs_read):
+    file = []
     years = []
-    #coloca todos os anos disponíveis numa lista e os ordena
+    # coloca todos os anos disponíveis numa lista e os ordena
     for song in songs_read:
         if song.year not in years:
             years.append(song.year)
     years.sort()
-    #coloca todos os índices das músicas na lista arquivo se tiverem o mesmo ano
-    #a forma que é colocado é: (ano, músicas[])
+    # coloca todos os índices das músicas na lista arquivo se tiverem o mesmo ano
+    # a forma que é colocado é: (ano, músicas[])
     for year in years:
         templist = []
         for i in range(0, len(songs_read)):
             if songs_read[i].year == year:
                 templist.append(i)
-        arquivo.append((year, templist))
+        file.append((year, templist))
 
     with open("years.pkl", "wb") as bin_file:
-        pickle.dump(arquivo, bin_file)
+        pickle.dump(file, bin_file)
 
+    return file
 
+def main():
+    songs_read = read_from_bin()
+
+    #coisas do arquivo invertido
+    file = create_postings_file(songs_read)
     #forma de ordenar e filtrar pelo ano ao mesmo tempo
     ordena = []
-    arvore = BTree(2)
-    for i in range(0, len(arquivo[-1][1])):
-        arvore.insert(songs_read[arquivo[-1][1][i]].total_streams, arquivo[-1][1][i])
+    tree = BTree(2)
+    for i in range(0, len(file[-1][1])):
+        tree.insert(songs_read[file[-1][1][i]].total_streams, file[-1][1][i])
 
-    arvore.display(ordena)
+    tree.display(ordena)
 
     ordena.reverse()
     #for indice in ordena:
@@ -149,7 +84,6 @@ def main():
     for i in range(0, len(songs_read)):
         if not trie.search(songs_read[i].title):
             trie.insert(songs_read[i].title, i)
-
 
     trie_list = []
     trie.allthatstartswith("Blank", trie_list)
@@ -185,9 +119,6 @@ def main():
 
     window.show()
     sys.exit(app.exec_())
-
-
-
 
 if __name__ == "__main__":
     main()
