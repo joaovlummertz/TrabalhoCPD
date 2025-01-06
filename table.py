@@ -11,11 +11,13 @@ class CustomTableWidget:
         self.ascending_order = ascending_order
 
     def on_header_click(self, index):
+        self.highlight_column(False)
         if index == self.sort_by:
             self.ascending_order = not self.ascending_order
         else:
             self.sort_by = index
         self.update_table()
+        self.highlight_column(True)
 
     def create_b_tree(self):
         b_tree = BTree(2)
@@ -68,3 +70,9 @@ class CustomTableWidget:
         if not self.ascending_order:
             display = reversed(display)
         self.populate_table(display)
+
+    def highlight_column(self, highlight):
+        item = self.table_widget.horizontalHeaderItem(self.sort_by)
+        font = item.font()
+        font.setBold(highlight)
+        item.setFont(font)
