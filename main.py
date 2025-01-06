@@ -1,12 +1,13 @@
 import sys
 import pickle
+
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
 
 from btree import BTree
 from main_window import Ui_MainWindow
-import btree
 from table import CustomTableWidget
-
+from btree import BTree
+import trietree
 
 class Song:
     def __init__(self, title, artist, year, total_streams, peak_daily, genre):
@@ -109,6 +110,70 @@ def main():
 
     display = []
     b_tree.display(display)
+
+    #coisas do arquivo invertido
+    arquivo = []
+    years = []
+    #coloca todos os anos disponíveis numa lista e os ordena
+    for song in songs_read:
+        if song.year not in years:
+            years.append(song.year)
+    years.sort()
+    #coloca todos os índices das músicas na lista arquivo se tiverem o mesmo ano
+    #a forma que é colocado é: (ano, músicas[])
+    for year in years:
+        templist = []
+        for i in range(0, len(songs_read)):
+            if songs_read[i].year == year:
+                templist.append(i)
+        arquivo.append((year, templist))
+
+    with open("years.pkl", "wb") as bin_file:
+        pickle.dump(arquivo, bin_file)
+
+
+    #forma de ordenar e filtrar pelo ano ao mesmo tempo
+    ordena = []
+    arvore = BTree(2)
+    for i in range(0, len(arquivo[-1][1])):
+        arvore.insert(songs_read[arquivo[-1][1][i]].total_streams, arquivo[-1][1][i])
+
+    arvore.display(ordena)
+
+    ordena.reverse()
+    #for indice in ordena:
+     #   print(songs_read[indice], songs_read[indice].total_streams)
+
+    # uso da trie para pesquisar músicas
+    trie = trietree.Trie()
+    for i in range(0, len(songs_read)):
+        if not trie.search(songs_read[i].title):
+            trie.insert(songs_read[i].title, i)
+
+
+    trie_list = []
+    trie.allthatstartswith("Blank", trie_list)
+    #for i in trie_list:
+      #  print(songs_read[i])
+
+    #uso da trie para pesquisar artistas
+    trie2 = trietree.Trie()
+
+    for song in songs_read:
+        if not trie.search(song.artist.name):
+            indices_list = []
+            #procura o índice de todas as músicas do artista
+            for i in range(0, len(songs_read)):
+                if songs_read[i].artist.name == song.artist.name:
+                    indices_list.append(i)
+            #insere a lista com os indices na trie junto com o nome do artista
+            trie2.insert(song.artist.name, indices_list)
+
+    trie2_list = []
+    trie2.allthatstartswith("Imagine Dragons", trie2_list)
+    for artist in range(0, len(trie2_list)):
+        for i in trie2_list[artist]:
+            print(songs_read[i])
 
     read_from_bin()
     app = QApplication(sys.argv)
