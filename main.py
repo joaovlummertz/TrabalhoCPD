@@ -1,8 +1,12 @@
 import sys
 import pickle
-from PyQt5.QtWidgets import QApplication, QMainWindow
+
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
+
 from btree import BTree
 from main_window import Ui_MainWindow
+from table import CustomTableWidget
+from btree import BTree
 import trietree
 
 class Song:
@@ -106,10 +110,6 @@ def main():
 
     display = []
     b_tree.display(display)
-    #print(len(display))
-    #for i in display:
-      # print(songs_read[i], songs_read[i].total_streams)
-
 
     #coisas do arquivo invertido
     arquivo = []
@@ -180,8 +180,14 @@ def main():
     window = QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(window)
+
+    CustomTableWidget(ui.tableWidget, songs_read, 2, False).create_table()
+
     window.show()
     sys.exit(app.exec_())
+
+
+
 
 if __name__ == "__main__":
     main()
