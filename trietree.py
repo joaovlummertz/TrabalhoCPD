@@ -6,13 +6,6 @@ class TrieNode:
         self.is_end = False
         self.indice = None
 
-    def allthatstartsrecursive(self, listt):
-        if self.is_end:
-            listt.append(self.indice)
-        for value in self.children.values():
-            value.allthatstartsrecursive(listt)
-
-
 class Trie:
     def __init__(self):
         """
@@ -55,18 +48,17 @@ class Trie:
         return True
 
     def allthatstartswith(self, prefix: str, listt):
-        """
-        Returns list of elements that have the given prefix.
-        """
         current = self.root
 
         for letter in prefix:
             current = current.children.get(letter)
             if not current:
-                break
-        if current:
-            if current.is_end:
-                listt.append(current.indice)
+                return  # Prefixo não encontrado
 
-            for value in current.children.values():
-                value.allthatstartsrecursive(listt)
+        stack = [current]
+        while stack:
+            node = stack.pop()
+            if node.is_end:
+                listt.append(node.indice)  # Adiciona o índice se for um fim de palavra
+            for child in node.children.values():
+                stack.append(child)  # Adiciona os filhos na pilha

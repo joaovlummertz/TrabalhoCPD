@@ -1,59 +1,98 @@
 from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView
 
 from btree import BTree
+from trietree import Trie
+
+from postings import read_postings_file
 
 class CustomTableWidget:
     # The table can be sorted by a specific column and in ascending or descending order
-    def __init__(self, table_widget, data, sort_by, ascending_order, combo_box, postings):
+    def __init__(self, table_widget, data, sort_by, ascending_order, combo_box, years_postings, line_edit):
         self.table_widget = table_widget
         self.data = data
         self.sort_by = sort_by
         self.ascending_order = ascending_order
         self.combo_box = combo_box
-        self.postings = postings
+        self.years_postings = years_postings
+        self.line_edit = line_edit
 
-    def on_header_click(self, index):
+    def on_header_click(self, index, search=None):
         self.highlight_column(False)
         if index == self.sort_by:
             self.ascending_order = not self.ascending_order
         else:
             self.sort_by = index
-        self.update_table()
+        self.update_table(search)
         self.highlight_column(True)
 
     def create_b_tree(self):
         b_tree = BTree(2)
 
-        postings = self.postings
-        max_index = len(self.data)
+        data = self.data
+
+        postings = self.years_postings
+        max_index = len(data)
         selected_year = None
         curr_text = self.combo_box.currentText()
         if curr_text and curr_text != "Todos":
             selected_year = int(curr_text) - 2010
             max_index = len(postings[selected_year][1])
         for i in range(max_index):
-            data = self.data[i]
+            obj = data[i]
             index = i
             if curr_text and curr_text != "Todos":
-                data = self.data[postings[selected_year][1][i]]
+                obj = data[postings[selected_year][1][i]]
                 index = postings[selected_year][1][i]
 
             if self.sort_by == 0:
-                b_tree.insert(data.title, index)
+                b_tree.insert(obj.title, index)
             elif self.sort_by == 1:
-                b_tree.insert(data.artist.name, index)
+                b_tree.insert(obj.artist.name, index)
             elif self.sort_by == 2:
-                b_tree.insert(data.total_streams, index)
+                b_tree.insert(obj.total_streams, index)
             elif self.sort_by == 3:
-                b_tree.insert(data.peak_daily, index)
+                b_tree.insert(obj.peak_daily, index)
             elif self.sort_by == 4:
-                b_tree.insert(data.year, index)
+                b_tree.insert(obj.year, index)
             else:
-                b_tree.insert(data.genre.name, index)
-            print(data.year)
+                b_tree.insert(obj.genre.name, index)
 
         display = []
         b_tree.display(display)
+        return display
+
+    def create_trie_tree(self, prefix):
+        songs = Trie()
+        artist = Trie()
+
+        artists_postings = read_postings_file("artists.pkl")
+
+        year = self.combo_box.currentText()
+        if year and year != "Todos":
+            year = int(year)
+
+        for i in range(0, len(self.data)):
+            obj = self.data[i]
+            obj_year = int(float(obj.year))
+            if not songs.search(obj.title.lower()) and (year == "Todos" or obj_year == year):
+                songs.insert(obj.title.lower(), i)
+
+        for song in self.data:
+            if not artist.search(song.artist.name.lower()):
+                indices_list = artists_postings[song.artist.name.lower()]
+                artist.insert(song.artist.name.lower(), indices_list)
+
+        display = []
+
+        temp = []
+        artist.allthatstartswith(prefix, temp)
+        for art in range(0, len(temp)):
+            for i in temp[art]:
+                if int(float(self.data[i].year)) == year or year == "Todos":
+                    display.append(i)
+
+        songs.allthatstartswith(prefix, display)
+
         return display
 
     def populate_table(self, display):
@@ -73,7 +112,7 @@ class CustomTableWidget:
         self.table_widget.setColumnCount(6)
         self.table_widget.setHorizontalHeaderLabels(["Música", "Artista", "Total de repr.", "Rec. diário", "Ano", "Gênero"])
 
-        self.combo_box.currentIndexChanged.connect(lambda index: self.update_table())
+        self.combo_box.currentIndexChanged.connect(lambda index: self.update_table(self.line_edit.text()))
 
         self.combo_box.addItem("Todos")
         for i in range(2010, 2024):
@@ -81,9 +120,11 @@ class CustomTableWidget:
 
         self.combo_box.setCurrentIndex(0)
 
+        self.line_edit.textChanged.connect(lambda text: self.update_table(text))
+
         header = self.table_widget.horizontalHeader()
         header.setSectionsClickable(True)
-        header.sectionClicked.connect(lambda index: self.on_header_click(index))
+        header.sectionClicked.connect(lambda index: self.on_header_click(index, self.line_edit.text()))
         header.setSectionResizeMode(QHeaderView.Stretch)
 
         if not self.ascending_order:
@@ -91,8 +132,12 @@ class CustomTableWidget:
 
         self.populate_table(display)
 
-    def update_table(self):
-        display = self.create_b_tree()
+    def update_table(self, search=None):
+        display = []
+        if not search:
+            display = self.create_b_tree()
+        else:
+            display = self.create_trie_tree(search.lower())
         self.table_widget.setRowCount(len(display))
         if not self.ascending_order:
             display = reversed(display)
