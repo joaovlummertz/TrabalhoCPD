@@ -1,3 +1,4 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView, QPushButton, QLabel
 
 from btree import BTree
@@ -24,7 +25,8 @@ class CustomTableWidget:
         self.prev_button = QPushButton("<")
         self.next_button = QPushButton(">")
         self.page_label = QLabel("Página 1 de 1")
-        self.page_label.setMinimumSize(300, 20)
+        #self.page_label.setMinimumSize(300, 20)
+        self.page_label.setAlignment(Qt.AlignCenter)
 
         self.create_pagination_controls()
 
