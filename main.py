@@ -1,8 +1,8 @@
 import sys
 import pickle
-
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
+import csv_to_bin
 from main_window import Ui_MainWindow
 from postings import create_postings_files, read_postings_file
 from table import CustomTableWidget
@@ -39,7 +39,52 @@ def read_from_bin():
     with open("data.pkl", "rb") as bin_file:
         return pickle.load(bin_file)
 
+def insert_song(song_title, year, song_streams, song_peak, artist_name, genre_name):
+    songs = read_from_bin()
+    newartist = None
+    newgenre = None
+    genre_songs = []
+    artist_songs = []
+    #verifica se o artista e o gênero já estão na lista
+    for song in songs:
+        if artist_name == song.artist.name:
+            song.artist.total_streams += song_streams
+            newartist = song.artist
+            artist_songs.append(song)
+        if genre_name == song.genre.name:
+            song.genre.total_streams += song_streams
+            newgenre = song.genre
+            genre_songs.append(song)
+
+    #se não estão cria novo
+    if newartist is None:
+        newartist = Artist(artist_name, "Not informed", "Not informed", song_streams, None, [])
+    if newgenre is None:
+        newgenre = Genre(genre_name, song_streams, None, newartist)
+
+    #cria música
+    newartist.songs = artist_songs
+    newsong = Song(song_title, newartist, year, song_streams, song_peak, newgenre)
+    #atuliza as músicas do artista
+    newsong.artist.songs.append(newsong)
+    genre_songs.append(newsong)
+
+    for song in genre_songs:
+        if song.genre.most_streamed_song is not None and song.total_streams > song.genre.most_streamed_song.total_streams:
+            song.genre.most_streamed_song = song.total_streams
+
+    for song in newsong.artist.songs:
+        if song.artist.most_streamed_song is not None and song.total_streams > song.artist.most_streamed_song.total_streams:
+            song.artist.most_streamed_song = song.total_streams
+
+    songs.append(newsong)
+
+    with open("data.pkl", "wb") as bin_file:
+        pickle.dump(songs, bin_file)
+
+
 def main():
+    csv_to_bin.convert()
     songs_read = read_from_bin()
 
     create_postings_files(songs_read)
