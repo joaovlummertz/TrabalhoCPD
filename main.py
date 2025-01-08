@@ -50,7 +50,7 @@ def main():
     ui = Ui_MainWindow()
     ui.setupUi(window)
 
-    CustomTableWidget(ui.tableWidget, songs_read, 2, False, ui.comboBox, read_postings_file("years.pkl"), ui.lineEdit).create_table()
+    CustomTableWidget(ui.tableWidget, songs_read, 2, False, ui.comboBox, read_postings_file("years.pkl"), ui.lineEdit, ui.horizontalLayout).create_table()
 
     window.show()
     sys.exit(app.exec_())

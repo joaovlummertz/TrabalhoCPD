@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView
+from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView, QPushButton, QLabel
 
 from btree import BTree
 from trietree import Trie
@@ -7,7 +7,7 @@ from postings import read_postings_file
 
 class CustomTableWidget:
     # The table can be sorted by a specific column and in ascending or descending order
-    def __init__(self, table_widget, data, sort_by, ascending_order, combo_box, years_postings, line_edit):
+    def __init__(self, table_widget, data, sort_by, ascending_order, combo_box, years_postings, line_edit, pagination_layout):
         self.table_widget = table_widget
         self.data = data
         self.sort_by = sort_by
@@ -15,6 +15,44 @@ class CustomTableWidget:
         self.combo_box = combo_box
         self.years_postings = years_postings
         self.line_edit = line_edit
+        self.pagination_layout = pagination_layout
+
+        self.current_page = 0
+        self.items_per_page = 50
+        self.total_pages = 1
+
+        self.prev_button = QPushButton("<")
+        self.next_button = QPushButton(">")
+        self.page_label = QLabel("Página 1 de 1")
+        self.page_label.setMinimumSize(300, 20)
+
+        self.create_pagination_controls()
+
+    def create_pagination_controls(self):
+        self.prev_button.clicked.connect(self.prev_page)
+        self.next_button.clicked.connect(self.next_page)
+
+        self.pagination_layout.addWidget(self.prev_button)
+        self.pagination_layout.addWidget(self.page_label)
+        self.pagination_layout.addWidget(self.next_button)
+
+        self.update_pagination_controls(self.data)
+
+    def update_pagination_controls(self, data):
+        self.total_pages = (len(data) + self.items_per_page - 1) // self.items_per_page
+        self.page_label.setText(f"Página {self.current_page + 1} de {self.total_pages}")
+        self.prev_button.setEnabled(self.current_page > 0)
+        self.next_button.setEnabled(self.current_page < self.total_pages - 1)
+
+    def prev_page(self):
+        if self.current_page > 0:
+            self.current_page -= 1
+            self.update_table(self.line_edit.text())
+
+    def next_page(self):
+        if self.current_page < self.total_pages - 1:
+            self.current_page += 1
+            self.update_table(self.line_edit.text())
 
     def on_header_click(self, index, search=None):
         self.highlight_column(False)
@@ -96,13 +134,20 @@ class CustomTableWidget:
         return display
 
     def populate_table(self, display):
-        for row, i in enumerate(display):
+        start_index = self.current_page * self.items_per_page
+        end_index = min(start_index + self.items_per_page, len(display))
+        paginated_display = display[start_index:end_index]
+
+        self.table_widget.setRowCount(len(paginated_display))
+        for row, i in enumerate(paginated_display):
             self.table_widget.setItem(row, 0, QTableWidgetItem(self.data[i].title))
             self.table_widget.setItem(row, 1, QTableWidgetItem(self.data[i].artist.name))
             self.table_widget.setItem(row, 2, QTableWidgetItem(str(self.data[i].total_streams)))
             self.table_widget.setItem(row, 3, QTableWidgetItem(str(self.data[i].peak_daily)))
-            self.table_widget.setItem(row, 4, QTableWidgetItem(str(int(float(self.data[i].year))))) # Believe it or not, this casting is actually correct.
+            self.table_widget.setItem(row, 4, QTableWidgetItem(str(int(float(self.data[i].year)))))
             self.table_widget.setItem(row, 5, QTableWidgetItem(self.data[i].genre.name))
+
+        self.update_pagination_controls(display)
 
     def create_table(self):
         display = self.create_b_tree()
@@ -115,7 +160,7 @@ class CustomTableWidget:
         self.combo_box.currentIndexChanged.connect(lambda index: self.update_table(self.line_edit.text()))
 
         self.combo_box.addItem("Todos")
-        for i in range(2010, 2024):
+        for i in range(2010, int(float(self.years_postings[-1][0])) + 1):
             self.combo_box.addItem(str(i))
 
         self.combo_box.setCurrentIndex(0)
@@ -128,7 +173,7 @@ class CustomTableWidget:
         header.setSectionResizeMode(QHeaderView.Stretch)
 
         if not self.ascending_order:
-            display = reversed(display)
+            display = list(reversed(display))
 
         self.populate_table(display)
 
@@ -140,7 +185,7 @@ class CustomTableWidget:
             display = self.create_trie_tree(search.lower())
         self.table_widget.setRowCount(len(display))
         if not self.ascending_order:
-            display = reversed(display)
+            display = list(reversed(display))
         self.populate_table(display)
 
     def highlight_column(self, highlight):
