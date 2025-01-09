@@ -19,9 +19,9 @@ class Insert:
     def insert(self):
         title = self.dialog_widget.input_title.text()
         artist = self.dialog_widget.input_artist.text()
-        streams = self.dialog_widget.input_streams.text()
-        daily = self.dialog_widget.input_daily.text()
-        year = self.dialog_widget.input_year.text()
+        streams = int(self.dialog_widget.input_streams.text())
+        daily = int(self.dialog_widget.input_daily.text())
+        year = str(float(self.dialog_widget.input_year.text()))
         genre = self.dialog_widget.input_genre.text()
         persist_song(title, year, streams, daily, artist, genre)
 
