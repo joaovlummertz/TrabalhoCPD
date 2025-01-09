@@ -127,7 +127,7 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QPushButton" name="pushButton_3">
+        <widget class="QPushButton" name="insert_button">
          <property name="text">
           <string>Inserir nova música</string>
          </property>
