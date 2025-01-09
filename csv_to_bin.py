@@ -22,6 +22,7 @@ def convert():
                 genres[genre_name] = genre
 
             year = line["year"]
+            print(type(year))
             total_streams = int(line["Streams"])
             peak_daily = int(line["Daily"])
             song = Song(song_name, artists[artist_name], year, total_streams, peak_daily, genres[genre_name])
