@@ -3,14 +3,15 @@ import pickle
 from PyQt5.QtWidgets import QMainWindow, QDialog
 
 from input_window import Ui_Dialog
-
+from postings import create_postings_files, read_postings_file
 
 class Insert:
-    def __init__(self, dialog_button):
+    def __init__(self, dialog_button, table):
         self.dialog_button = dialog_button
         self.window = QDialog()
         self.dialog_widget = Ui_Dialog()
         self.dialog_widget.setupUi(self.window)
+        self.table = table
 
     def setup_dialog(self):
         self.dialog_button.clicked.connect(lambda : self.window.exec_())
@@ -23,7 +24,11 @@ class Insert:
         daily = int(self.dialog_widget.input_daily.text())
         year = str(float(self.dialog_widget.input_year.text()))
         genre = self.dialog_widget.input_genre.text()
-        persist_song(title, year, streams, daily, artist, genre)
+        songs = persist_song(title, year, streams, daily, artist, genre)
+        self.table.data = songs
+        create_postings_files(songs)
+        self.table.years_postings = read_postings_file("years.pkl")
+        self.table.update_table()
 
 def persist_song(song_title, year, song_streams, song_peak, artist_name, genre_name):
     from main import read_from_bin, Song, Artist, Genre
@@ -69,3 +74,5 @@ def persist_song(song_title, year, song_streams, song_peak, artist_name, genre_n
 
     with open("data.pkl", "wb") as bin_file:
         pickle.dump(songs, bin_file)
+
+    return songs

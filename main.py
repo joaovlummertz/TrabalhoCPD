@@ -53,9 +53,9 @@ def main():
     ui = Ui_MainWindow()
     ui.setupUi(window)
 
-    CustomTableWidget(ui.tableWidget, songs_read, 2, False, ui.comboBox, read_postings_file("years.pkl"), ui.lineEdit, ui.horizontalLayout).create_table()
-
-    Insert(ui.insert_button).setup_dialog()
+    table = CustomTableWidget(ui.tableWidget, songs_read, 2, False, ui.comboBox, read_postings_file("years.pkl"), ui.lineEdit, ui.horizontalLayout)
+    table.create_table()
+    Insert(ui.insert_button, table).setup_dialog()
 
     window.show()
     sys.exit(app.exec_())

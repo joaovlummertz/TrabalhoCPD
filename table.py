@@ -77,6 +77,7 @@ class CustomTableWidget:
         if curr_text and curr_text != "Todos":
             selected_year = int(curr_text) - 2010
             max_index = len(postings[selected_year][1])
+
         for i in range(max_index):
             obj = data[i]
             index = i
@@ -162,8 +163,8 @@ class CustomTableWidget:
         self.combo_box.currentIndexChanged.connect(lambda index: self.update_table(self.line_edit.text()))
 
         self.combo_box.addItem("Todos")
-        for i in range(2010, int(float(self.years_postings[-1][0])) + 1):
-            self.combo_box.addItem(str(i))
+        for i in range(len(self.years_postings)):
+            self.combo_box.addItem(str(int(float(self.years_postings[i][0]))))
 
         self.combo_box.setCurrentIndex(0)
 
