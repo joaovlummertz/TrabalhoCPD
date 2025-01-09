@@ -76,12 +76,7 @@ class CustomTableWidget:
         curr_text = self.combo_box.currentText()
         if curr_text and curr_text != "Todos":
             selected_year = int(curr_text) - 2010
-            if (selected_year + 2010) == int(postings[selected_year][0]):
-                max_index = len(postings[selected_year][1])
-            else:
-                for i in range(len(self.years_postings)):
-                    if self.years_postings[i][0] == (selected_year + 2010):
-                        max_index = len(postings[i][1])
+            max_index = len(postings[selected_year][1])
 
         for i in range(max_index):
             obj = data[i]
