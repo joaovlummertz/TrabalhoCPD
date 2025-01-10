@@ -4,14 +4,16 @@ from PyQt5.QtWidgets import QMainWindow, QDialog
 
 from input_window import Ui_Dialog
 from postings import create_postings_files, read_postings_file
+from stats import update_stats_tab
 
 class Insert:
-    def __init__(self, dialog_button, table):
+    def __init__(self, dialog_button, table, ui):
         self.dialog_button = dialog_button
         self.window = QDialog()
         self.dialog_widget = Ui_Dialog()
         self.dialog_widget.setupUi(self.window)
         self.table = table
+        self.ui = ui
 
     def setup_dialog(self):
         self.dialog_button.clicked.connect(lambda : self.window.exec_())
@@ -29,6 +31,8 @@ class Insert:
         create_postings_files(songs)
         self.table.years_postings = read_postings_file("years.pkl")
         self.table.update_table()
+        update_stats_tab(self.ui, songs)
+
 
 def persist_song(song_title, year, song_streams, song_peak, artist_name, genre_name):
     from main import read_from_bin, Song, Artist, Genre

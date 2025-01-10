@@ -66,7 +66,7 @@ class CustomTableWidget:
         self.highlight_column(True)
 
     def create_b_tree(self):
-        b_tree = BTree(2)
+        b_tree = BTree(100)
 
         data = self.data
 
